@@ -1,0 +1,59 @@
+{# templates/base.html — Layout dasar Flipcard Learning App #}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="{% block meta_description %}Flipcard Learning — Aplikasi flashcard interaktif untuk menghafal materi dengan mudah dan efektif.{% endblock %}" />
+    <title>{% block title %}Flipcard Learning{% endblock %} | FlipCard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- ══════════ NAVBAR ══════════ -->
+    <nav class="navbar" id="main-navbar" aria-label="Navigasi utama">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-brand" id="nav-brand-logo">
+                <span class="brand-icon">🃏</span>
+                <span class="brand-text">FlipCard</span>
+            </a>
+
+            <div class="nav-links" id="nav-links">
+                <a href="{{ url_for('index') }}"
+                   class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+                   id="nav-home">
+                    Beranda
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ══════════ MAIN CONTENT ══════════ -->
+    <main class="main-content" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ══════════ FOOTER ══════════ -->
+    <footer class="footer" id="main-footer">
+        <div class="footer-container">
+            <p class="footer-text">
+                🃏 <strong>FlipCard Learning</strong> — Belajar lebih efektif dengan metode active recall.
+            </p>
+            <p class="footer-sub">Built with Flask &amp; MySQL</p>
+        </div>
+    </footer>
+
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
