@@ -1,0 +1,178 @@
+{# templates/deck_detail.html — Halaman Detail Deck & Manajemen Kartu #}
+{% extends "base.html" %}
+
+{% block title %}{{ deck.name }}{% endblock %}
+{% block meta_description %}Kelola kartu dalam deck "{{ deck.name }}". Tambah, lihat, dan hapus kartu hafalan kamu.{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Back Link -->
+  <a href="{{ url_for('index') }}" class="back-link" id="link-back-home">
+    ← Kembali ke Beranda
+  </a>
+
+  <!-- ══════ PAGE HEADER ══════ -->
+  <div class="page-header">
+    <div class="page-header-text">
+      <p class="page-eyebrow">Deck</p>
+      <h1 class="page-title">{{ deck.name }}</h1>
+      {% if deck.description %}
+      <p class="page-subtitle">{{ deck.description }}</p>
+      {% endif %}
+    </div>
+    <div style="display:flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+      {% if cards %}
+      <a href="{{ url_for('study', deck_id=deck.id) }}"
+         class="btn btn-primary"
+         id="btn-start-study">
+        ▶ Mulai Belajar
+      </a>
+      {% endif %}
+      <button class="btn btn-secondary"
+              id="btn-open-create-card"
+              onclick="openModal('modal-create-card')">
+        + Tambah Kartu
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ STAT BAR ══════ -->
+  <div class="deck-stat-bar" id="deck-stat-bar" role="region" aria-label="Statistik deck">
+    <div class="deck-stat">
+      <span class="stat-label">Total Kartu</span>
+      <span class="stat-value" id="card-count">{{ cards | length }}</span>
+    </div>
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div class="deck-stat">
+      <span class="stat-label">Nama Deck</span>
+      <span class="stat-value" style="font-size:1rem; font-weight:600;">{{ deck.name }}</span>
+    </div>
+    {% if cards %}
+    <div class="stat-divider" aria-hidden="true"></div>
+    <div style="margin-left: auto;">
+      <a href="{{ url_for('study', deck_id=deck.id) }}"
+         class="btn btn-primary btn-sm"
+         id="btn-study-stat">
+        ▶ Study Mode
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ══════ CARDS GRID ══════ -->
+  <div class="section-header">
+    <h2 class="section-title">
+      Kartu
+      <span class="section-title-count">{{ cards | length }}</span>
+    </h2>
+    <button class="btn btn-ghost btn-sm"
+            id="btn-add-card-header"
+            onclick="openModal('modal-create-card')">
+      + Tambah Kartu
+    </button>
+  </div>
+
+  <div class="cards-grid" id="cards-grid" role="list">
+
+    {% if cards %}
+      {% for card in cards %}
+      <div class="card-item" id="card-item-{{ card.id }}" role="listitem">
+
+        <!-- Front -->
+        <div>
+          <p class="card-side-label">❓ Pertanyaan</p>
+          <p class="card-front-text">{{ card.front }}</p>
+        </div>
+
+        <hr class="card-divider" aria-hidden="true" />
+
+        <!-- Back -->
+        <div>
+          <p class="card-side-label card-back-label">💡 Jawaban</p>
+          <p class="card-back-text">{{ card.back }}</p>
+        </div>
+
+        <!-- Actions -->
+        <div class="card-actions">
+          <button class="btn btn-danger btn-sm btn-delete-card"
+                  id="btn-delete-card-{{ card.id }}"
+                  data-card-id="{{ card.id }}"
+                  aria-label="Hapus kartu ini">
+            🗑 Hapus
+          </button>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="empty-state" id="empty-state-cards" style="grid-column: 1/-1;">
+        <span class="empty-state-icon" aria-hidden="true">📭</span>
+        <h2 class="empty-state-title">Deck ini masih kosong</h2>
+        <p class="empty-state-desc">
+          Tambahkan kartu pertama untuk mulai belajar!
+        </p>
+        <button class="btn btn-primary btn-lg"
+                id="btn-empty-add-card"
+                onclick="openModal('modal-create-card')">
+          + Tambah Kartu Pertama
+        </button>
+      </div>
+    {% endif %}
+
+  </div><!-- /cards-grid -->
+
+</div><!-- /container -->
+
+
+<!-- ══════════════════════════════
+     MODAL: Tambah Kartu Baru
+═══════════════════════════════ -->
+<div class="modal-wrapper" id="modal-create-card" role="dialog"
+     aria-modal="true" aria-labelledby="modal-create-card-title">
+  <div class="modal-overlay" aria-hidden="true"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-create-card-title">🃏 Tambah Kartu Baru</h2>
+      <button class="modal-close" id="btn-close-modal-card"
+              onclick="closeModal('modal-create-card')" aria-label="Tutup modal">✕</button>
+    </div>
+
+    <form id="form-create-card" novalidate data-deck-id="{{ deck.id }}">
+      <div class="form-group">
+        <label class="form-label" for="input-card-front">
+          ❓ Pertanyaan / Depan Kartu *
+        </label>
+        <textarea class="form-control"
+                  id="input-card-front"
+                  name="front"
+                  placeholder="Tulis pertanyaan atau istilah di sini..."
+                  rows="3"
+                  required></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="input-card-back">
+          💡 Jawaban / Belakang Kartu *
+        </label>
+        <textarea class="form-control"
+                  id="input-card-back"
+                  name="back"
+                  placeholder="Tulis jawaban atau definisi di sini..."
+                  rows="4"
+                  required></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost"
+                id="btn-cancel-create-card"
+                onclick="closeModal('modal-create-card')">Batal</button>
+        <button type="submit" class="btn btn-primary" id="btn-submit-create-card">
+          Simpan Kartu
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
