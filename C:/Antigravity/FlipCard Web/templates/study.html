@@ -1,0 +1,154 @@
+{# templates/study.html — Study Mode dengan Animasi Flip 3D #}
+{% extends "base.html" %}
+
+{% block title %}Study: {{ deck.name }}{% endblock %}
+{% block meta_description %}Study mode untuk deck "{{ deck.name }}". Uji pemahamanmu dengan animasi flip kartu 3D yang interaktif.{% endblock %}
+
+{% block content %}
+
+{# Serialisasi data kartu ke JSON untuk digunakan oleh JavaScript #}
+{% set cards_json = cards | tojson %}
+
+<div class="container">
+
+  <!-- Back Link -->
+  <a href="{{ url_for('deck_detail', deck_id=deck.id) }}" class="back-link" id="link-back-deck">
+    ← Kembali ke {{ deck.name }}
+  </a>
+
+  <!-- ══════ STUDY LAYOUT ══════ -->
+  <div class="study-layout"
+       id="study-container"
+       data-cards="{{ cards_json | e }}"
+       role="main"
+       aria-label="Study mode">
+
+    <!-- Deck title -->
+    <p class="study-deck-title" id="study-deck-name">
+      🎓 Sedang belajar: <strong>{{ deck.name }}</strong>
+    </p>
+
+    <!-- ══════ PROGRESS BAR ══════ -->
+    <div class="study-progress-wrapper" id="study-progress-wrapper"
+         role="progressbar"
+         aria-valuemin="1"
+         aria-valuemax="{{ cards | length }}"
+         aria-valuenow="1">
+      <div class="progress-header">
+        <span class="progress-label">Progress</span>
+        <span class="progress-count" id="progress-text">1 / {{ cards | length }}</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-bar-fill" id="progress-bar-fill"
+             style="width: {{ (1 / (cards | length) * 100) | round(1) }}%">
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         FLIP CARD — CSS 3D Transform
+         Klik kartu → toggles class .is-flipped
+         → rotateY(0deg) → rotateY(180deg)
+    ═══════════════════════════════════════════ -->
+    <div class="flip-card-scene" id="flip-card-scene" aria-label="Kartu hafalan, klik untuk membalik">
+      <div class="flip-card" id="flip-card" role="button" tabindex="0"
+           aria-label="Klik untuk membalik kartu">
+
+        <!-- SISI DEPAN (Pertanyaan) -->
+        <div class="flip-card-face flip-card-front" id="flip-card-front">
+          <span class="face-label" aria-hidden="true">❓ Pertanyaan</span>
+          <p class="face-text" id="card-front-text">
+            {# Diisi oleh JavaScript saat halaman dimuat #}
+          </p>
+          <div class="flip-hint" aria-hidden="true">
+            <span>👆</span>
+            <span>Klik kartu untuk melihat jawaban</span>
+          </div>
+        </div>
+
+        <!-- SISI BELAKANG (Jawaban) -->
+        <div class="flip-card-face flip-card-back" id="flip-card-back">
+          <span class="face-label" aria-hidden="true">💡 Jawaban</span>
+          <p class="face-text" id="card-back-text">
+            {# Diisi oleh JavaScript saat halaman dimuat #}
+          </p>
+        </div>
+
+      </div><!-- /flip-card -->
+    </div><!-- /flip-card-scene -->
+
+    <!-- ══════ NAVIGATION BUTTONS ══════ -->
+    <div class="study-nav" id="study-nav" role="group" aria-label="Navigasi kartu">
+      <button class="btn btn-secondary btn-lg" id="btn-prev" aria-label="Kartu sebelumnya" disabled>
+        ← Sebelumnya
+      </button>
+      <button class="btn btn-primary btn-lg" id="btn-next" aria-label="Kartu berikutnya">
+        Berikutnya →
+      </button>
+    </div>
+
+    <!-- ══════ KEYBOARD HINT ══════ -->
+    <div class="keyboard-hint" id="keyboard-hint" aria-hidden="true">
+      <span class="kbd">← →</span>
+      <span style="color: var(--clr-text-faint); font-size: 0.78rem;">navigasi</span>
+      <span style="color: var(--clr-text-faint);">•</span>
+      <span class="kbd">Space</span>
+      <span style="color: var(--clr-text-faint); font-size: 0.78rem;">flip kartu</span>
+    </div>
+
+  </div><!-- /study-layout -->
+
+</div><!-- /container -->
+
+
+<!-- ══════════════════════════════
+     OVERLAY: Belajar Selesai 🎉
+═══════════════════════════════ -->
+<div class="study-complete-overlay hidden"
+     id="study-complete-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="complete-title">
+
+  <div class="complete-card">
+    <span class="complete-emoji" aria-hidden="true">🎉</span>
+    <h2 class="complete-title" id="complete-title">Luar Biasa!</h2>
+    <p class="complete-desc">
+      Kamu telah menyelesaikan semua <strong>{{ cards | length }}</strong> kartu
+      dalam deck <strong>{{ deck.name }}</strong>.
+      Konsistensi adalah kunci!
+    </p>
+    <div class="complete-actions">
+      <button class="btn btn-primary btn-lg"
+              id="btn-restart-study"
+              onclick="location.reload()">
+        🔄 Ulangi Lagi
+      </button>
+      <a href="{{ url_for('deck_detail', deck_id=deck.id) }}"
+         class="btn btn-secondary btn-lg"
+         id="btn-back-to-deck">
+        Kembali ke Deck
+      </a>
+      <a href="{{ url_for('index') }}"
+         class="btn btn-ghost btn-lg"
+         id="btn-back-to-home">
+        Pilih Deck Lain
+      </a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Pastikan flip card juga bisa diakses via keyboard (Enter / Space)
+  document.getElementById("flip-card").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      this.classList.toggle("is-flipped");
+    }
+  });
+</script>
+{% endblock %}
